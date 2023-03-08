@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
   int i = 0;
   thread_create(threadfunc, (void*)314159, (void *)&i);
-  thread_create(threadfunc2, 0, 0);
+  // thread_create(threadfunc2, 0, 0);
   thread_join();
   thread_join();
 
