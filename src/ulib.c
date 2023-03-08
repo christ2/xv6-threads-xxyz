@@ -144,3 +144,18 @@ void threadfunc(void *arg1, void *arg2) {
   *i = (int)arg1;
   exit();
 }
+
+int main(int argc, char *argv[])
+{
+  int *i = malloc(sizeof(int)); // allocate memory for i
+  *i = 0;
+  thread_create(threadfunc, (void*)314159, (void *)i);
+  thread_create(threadfunc2, 0, 0);
+  thread_join();
+  thread_join();
+
+  printf(1, "XV6_TEST_OUTPUT : global = %d i = %d\n", global, *i);
+
+  free(i); // free memory for i
+  exit();
+}
