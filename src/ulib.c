@@ -3,6 +3,7 @@
 #include "fcntl.h"
 #include "user.h"
 #include "x86.h"
+#include "mmu.h"  // PGSIZE
 
 char*
 strcpy(char *s, const char *t)
@@ -103,4 +104,37 @@ memmove(void *vdst, const void *vsrc, int n)
   while(n-- > 0)
     *dst++ = *src++;
   return vdst;
+}
+
+int thread_create(void (*start_routine)(void *, void *), void *arg1, void *arg2) {
+  void *stack = malloc(PGSIZE);
+  if (stack == 0)
+    return -1;
+  int r = clone(start_routine, arg1, arg2, stack);
+  if (r == -1)
+    free(stack);
+  return r;
+}
+
+int thread_join() {
+  void *stack;
+  int r = join(&stack);
+  free(stack);
+  return r;
+}
+
+// ticket lock
+void lock_init(lock_t *lock) {
+  lock->ticket = 0;
+  lock->turn = 0;
+}
+
+void lock_acquire(lock_t *lock) {  
+  int myturn = __atomic_fetch_add(&lock->ticket, 1, __ATOMIC_SEQ_CST);
+  while (lock->turn != myturn)
+    ; // spin
+}
+
+void lock_release(lock_t *lock) {
+  lock->turn += 1;
 }
