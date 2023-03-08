@@ -138,3 +138,13 @@ void lock_acquire(lock_t *lock) {
 void lock_release(lock_t *lock) {
   lock->turn += 1;
 }
+
+void threadfunc(void *arg1, void *arg2) {
+  int *ip = malloc(sizeof(int));
+  if (ip != 0) {
+    *ip = (int)arg1;
+    *(int *)arg2 = *ip;
+    free(ip);
+  }
+  exit();
+}
