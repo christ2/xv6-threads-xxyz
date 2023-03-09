@@ -246,16 +246,32 @@ int clone(void (*fcn)(void *, void *), void *arg1, void *arg2, void *stack) {
   *np->tf = *curproc->tf;
 
   np->tf->eip = (uint)fcn;  // eip register: instruction pointer
+
   // copy args to stack
-  np->usp = stack;
-  uint *sp = stack + PGSIZE;
-  sp--;
-  *sp = (uint)arg2;
-  sp--;
-  *sp = (uint)arg1;
-  sp--;
-  *sp = 0xffffffff;        // fake return PC
-  np->tf->esp = (uint)sp;  // esp register: stack pointer
+  // code dibawah ini direplace dgn code dari chatgpt
+  // np->usp = stack;
+  // uint *sp = stack + PGSIZE;
+  // sp--;
+  // *sp = (uint)arg2;
+  // sp--;
+  // *sp = (uint)arg1;
+  // sp--;
+  // *sp = 0xffffffff;        // fake return PC
+  // np->tf->esp = (uint)sp;  // esp register: stack pointer
+
+  //dari chatgpt
+  void *stack = malloc(2 * sizeof(int) + sizeof(uint));
+  if (stack == 0)
+    return -1;
+
+  int *arg1_ptr = stack + PGSIZE - 2 * sizeof(int);
+  int *arg2_ptr = stack + PGSIZE - sizeof(int);
+  uint *ret_addr_ptr = stack + PGSIZE;
+  *arg1_ptr = (int)arg1;
+  *arg2_ptr = (int)arg2;
+  *ret_addr_ptr = 0xffffffff;
+  np->tf->esp = (uint)arg2_ptr;
+  //abis disini, dibawah udah bukan dari chatgpt
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -293,7 +309,8 @@ int join(void **stack) {
       if(p->state == ZOMBIE){
         // Found one.
         pid = p->pid;
-        *stack = p->usp;
+        // *stack = p->usp; // ini dari xxyz patch
+        *stack = (void*)p->tf->esp; // ini dari chatgpt+
         kfree(p->kstack);
         p->kstack = 0;
         // freevm(p->pgdir);  free it at wait()
