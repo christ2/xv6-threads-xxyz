@@ -138,16 +138,3 @@ void lock_acquire(lock_t *lock) {
 void lock_release(lock_t *lock) {
   lock->turn += 1;
 }
-
-// int global;
-
-void threadfunc(void *arg1, void *arg2) {
-  int *i = (int *)arg2;
-  *i = (int)arg1;
-  exit();
-}
-
-// void threadfunc2(void *arg1, void *arg2) {
-//   global = 12345;
-//   exit();
-// }
